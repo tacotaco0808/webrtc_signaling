@@ -1,3 +1,6 @@
+# 開発用鍵
+certs
+
 # dependencies (bun install)
 node_modules
 
