@@ -14,6 +14,16 @@ const socket = io(`${SERVER_URL}`, {
 socket.on("connect", () => {
   console.log("サーバに接続成功:", socket.id);
 });
+
+socket.emit("join-room", { roomId: "test-room", userId: "test-user" });
+
+socket.on("user-joined", (userId: string) => {
+  console.log("新しいユーザーが参加しました:", userId);
+});
+socket.on("user-disconnected", (userId: string) => {
+  console.log("ユーザーが退出しました:", userId);
+});
+
 socket.on("disconnect", () => {
   console.log("サーバから切断されました");
 });
