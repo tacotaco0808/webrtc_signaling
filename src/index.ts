@@ -82,16 +82,44 @@ io.on("connection", (socket) => {
       socket.to(data.roomId).emit("user-disconnected", socket.id);
     });
   });
-  socket.on("signal", ({ userId, targetId, signal }) => {
-    console.log("signal", userId, targetId);
-    const targetSocket = userMap[targetId];
-    if (targetSocket) {
-      io.to(targetId).emit("signal", { userId, signal });
-      console.log("ターゲットのソケットにシグナルを送信しました:", targetId);
+  // Offer送信
+  socket.on("offer", ({ targetId, sdp }: { targetId: string; sdp: any }) => {
+    console.log("offer from", socket.id, "to", targetId);
+    if (userMap[targetId]) {
+      io.to(targetId).emit("offer", { userId: socket.id, sdp });
+      console.log("offerを送信しました:", targetId);
     } else {
       console.log("ターゲットのソケットが見つかりません:", targetId);
     }
   });
+
+  // Answer送信
+  socket.on("answer", ({ targetId, sdp }: { targetId: string; sdp: any }) => {
+    console.log("answer from", socket.id, "to", targetId);
+    if (userMap[targetId]) {
+      io.to(targetId).emit("answer", { userId: socket.id, sdp });
+      console.log("answerを送信しました:", targetId);
+    } else {
+      console.log("ターゲットのソケットが見つかりません:", targetId);
+    }
+  });
+
+  // ICE Candidate送信
+  socket.on(
+    "ice-candidate",
+    ({ targetId, candidate }: { targetId: string; candidate: any }) => {
+      console.log("ice-candidate from", socket.id, "to", targetId);
+      if (userMap[targetId]) {
+        io.to(targetId).emit("ice-candidate", {
+          userId: socket.id,
+          candidate,
+        });
+        console.log("ice-candidateを送信しました:", targetId);
+      } else {
+        console.log("ターゲットのソケットが見つかりません:", targetId);
+      }
+    }
+  );
 });
 
 const showUserMap = () => {
