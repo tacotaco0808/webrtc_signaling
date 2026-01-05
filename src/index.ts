@@ -19,11 +19,30 @@ const io = new Server(server);
 const rooms: { [roomId: string]: any[] } = {};
 const userMap: { [socketId: string]: string } = {}; // socketId(key)とuserIdのマッピング
 
+// モックデータ
+const userMapMock: { [socketId: string]: string } = {
+  "mock-socket-1": "user-alice",
+  "mock-socket-2": "user-bob",
+  "mock-socket-3": "user-charlie",
+};
+
+const roomsMock: { [roomId: string]: any[] } = {
+  "test-room": [
+    { socketId: "mock-socket-1", userId: "user-alice" },
+    { socketId: "mock-socket-2", userId: "user-bob" },
+  ],
+  lobby: [{ socketId: "mock-socket-3", userId: "user-charlie" }],
+};
+
 // Socket.IOの接続イベントの処理
 io.on("connection", (socket) => {
   console.log("socket通信が開始されました。", socket.id);
   socket.on("join-room", (data: { roomId: string; userId: string }) => {
     console.log("join-room", socket.id);
+
+    // 既存の部屋メンバーリストを取得（参加前）
+    const existingMembers = rooms[data.roomId] || [];
+
     // ユーザーを部屋に追加
     userMap[socket.id] = data.userId;
     socket.join(data.roomId);
@@ -34,6 +53,10 @@ io.on("connection", (socket) => {
 
     // デバッグ:現在のユーザーリストをコンソールに表示
     showUserMap();
+
+    // 新規参加者に既存メンバーリストを送信
+    socket.emit("existing-members", existingMembers);
+    console.log("既存メンバーリストを送信:", existingMembers);
 
     // 部屋にいる他のユーザーに通知
     socket.to(data.roomId).emit("user-joined", socket.id);
@@ -58,6 +81,16 @@ io.on("connection", (socket) => {
       }
       socket.to(data.roomId).emit("user-disconnected", socket.id);
     });
+  });
+  socket.on("signal", ({ userId, targetId, signal }) => {
+    console.log("signal", userId, targetId);
+    const targetSocket = userMap[targetId];
+    if (targetSocket) {
+      io.to(targetId).emit("signal", { userId, signal });
+      console.log("ターゲットのソケットにシグナルを送信しました:", targetId);
+    } else {
+      console.log("ターゲットのソケットが見つかりません:", targetId);
+    }
   });
 });
 

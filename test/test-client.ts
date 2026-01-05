@@ -16,6 +16,11 @@ socket.on("connect", () => {
 });
 
 socket.emit("join-room", { roomId: "test-room", userId: "test-user" });
+socket.emit("signal", {
+  userId: "test-user",
+  targetId: "mock-socket-1",
+  signal: "example-signal!",
+});
 
 socket.on("user-joined", (userId: string) => {
   console.log("新しいユーザーが参加しました:", userId);
@@ -23,6 +28,15 @@ socket.on("user-joined", (userId: string) => {
 socket.on("user-disconnected", (userId: string) => {
   console.log("ユーザーが退出しました:", userId);
 });
+socket.on("existing-members", (members: any[]) => {
+  console.log("既存メンバーリストを受信しました:", members);
+});
+socket.on(
+  "signal",
+  ({ userId, signal }: { userId: string; signal: string }) => {
+    console.log("シグナルを受信しました:", userId, signal);
+  }
+);
 
 socket.on("disconnect", () => {
   console.log("サーバから切断されました");
