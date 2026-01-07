@@ -1,9 +1,10 @@
 import io from "socket.io-client";
 
 const PORT = Number(process.env.PORT) || 3000;
+const HOST = process.env.HOST || "localhost";
 const SERVER_URL =
   process.env.SERVER_ENV === "dev"
-    ? `https://localhost:${PORT}`
+    ? `https://${HOST}:${PORT}`
     : `https://production-server:${PORT}`; // サーバーのURLとポートを指定
 
 const socket = io(`${SERVER_URL}`, {
