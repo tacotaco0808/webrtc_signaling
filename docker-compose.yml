@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  webrtc-signaling:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: webrtc-signaling-server
+    ports:
+      - "3000:3000"
+    volumes:
+      # 証明書をマウント
+      - ./certs:/app/certs:ro
+      # 開発時はソースコードもマウント（オプション）
+      - ./src:/app/src
+    environment:
+      - NODE_ENV=production
+      - SERVER_ENV=dev # HTTPSを使用する場合
+    restart: unless-stopped
