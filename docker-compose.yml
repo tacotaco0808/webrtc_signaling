@@ -1,19 +1,30 @@
 version: "3.8"
 
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy # プロキシ(クライアントとサーバー間の中継役)
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro #ro: read-only
+      - ./certs:/etc/nginx/certs:ro
+    depends_on: # webrtc-signalingサービスが起動してからnginxを起動
+      - webrtc-signaling
+    restart: unless-stopped
+
   webrtc-signaling:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: webrtc-signaling-server
     ports:
-      - "3000:3000"
+      - "3000"
     volumes:
-      # 証明書をマウント
-      - ./certs:/app/certs:ro
       # 開発時はソースコードもマウント（オプション）
       - ./src:/app/src
     environment:
       - NODE_ENV=production
-      - SERVER_ENV=dev # HTTPSを使用する場合
+      - SERVER_ENV=plain # HTTPSを使用する場合
     restart: unless-stopped
