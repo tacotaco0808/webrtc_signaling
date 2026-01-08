@@ -1,5 +1,5 @@
 import express from "express";
-import https from "https";
+import http from "http";
 import fs from "fs";
 import { Server } from "socket.io";
 
@@ -9,10 +9,8 @@ const options = {
   key: fs.readFileSync("certs/server_key.pem"),
   cert: fs.readFileSync("certs/server_crt.pem"),
 };
-const server =
-  process.env.SERVER_ENV === "dev"
-    ? https.createServer(options, app)
-    : https.createServer(app);
+// nginxを使う場合は通常のHTTPサーバーとして動作
+const server = http.createServer(app);
 const io = new Server(server);
 
 // 部屋とユーザーの管理用オブジェクト
