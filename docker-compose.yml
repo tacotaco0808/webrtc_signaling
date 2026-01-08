@@ -3,16 +3,16 @@ version: "3.8"
 services:
   nginx:
     image: nginx:alpine
-    container_name: nginx-proxy # プロキシ(クライアントとサーバー間の中継役)
+    container_name: nginx-proxy
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro #ro: read-only
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/etc/nginx/certs:ro
-    depends_on: # webrtc-signalingサービスが起動してからnginxを起動
+    depends_on:
       - webrtc-signaling
-    restart: unless-stopped
+    restart: always
 
   webrtc-signaling:
     build:
@@ -21,10 +21,7 @@ services:
     container_name: webrtc-signaling-server
     ports:
       - "3000"
-    volumes:
-      # 開発時はソースコードもマウント（オプション）
-      - ./src:/app/src
     environment:
       - NODE_ENV=production
-      - SERVER_ENV=plain # HTTPSを使用する場合
-    restart: unless-stopped
+      - PORT=3000
+    restart: always
