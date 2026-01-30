@@ -1,11 +1,11 @@
-##必須なファイル
+## 必須なファイル
 
 certs フォルダ内に自己署名証明書を配置してください。
 
 - certs/server_crt.key
 - certs/server_key.pem
 
-##環境変数設定
+## 環境変数設定
 プロジェクトルートに .env ファイルを作成し、以下の内容を追加してください。
 
 ```env
@@ -15,7 +15,7 @@ HOST=           # サーバーホストを指定（例:192.168.1.xx）
 DOCKER=true     # Docker環境で実行する場合に指定
 ```
 
-##Docker での実行
+## Docker での実行
 Docker 環境で実行する場合、.env ファイルに `DOCKER=true` を追加してください。
 Docker イメージのビルドとコンテナの起動は以下のコマンドで行います。
 
@@ -28,3 +28,30 @@ docker-compose down
 docker-compose up -d --build # ビルドと起動を同時に行う場合
 docker inspect webrtc-signaling-server -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' # コンテナのIPアドレスを確認する場合
 ```
+
+## 殴り書きの設計書
+webrtc　シグナリングサーバ
+必要な機能
+sdp(offer,answer),ice-candidateの交換
+
+### 接続ユーザは自作roomとsocket.ioの部屋機能の二つで管理
+userMapに全ユーザを保持
+さらにroomsにroom単位でユーザを保持
+
+userMap
+-[socketId]:string
+rooms
+-[roomId]:any[]
+
+入室処理(roomId,userIdがクライアント側から送られる)
+join
+↓
+userMap,roomsにユーザ追加
+↓
+socket.io機能の部屋に参加※socket.ioで部屋管理できてrooms/socket.ioのroomsの二つを同期している
+
+切断処理
+disconnect
+↓
+userMap,roomsからユーザ削除
+
