@@ -57,7 +57,9 @@ io.on("connection", (socket) => {
     console.log("既存メンバーリストを送信:", existingMembers);
 
     // 部屋にいる他のユーザーに通知
-    socket.to(res_data.roomId).emit("user-joined", socket.id);
+    socket
+      .to(res_data.roomId)
+      .emit("user-joined", { socketId: socket.id, userId: res_data.userId });
 
     // 切断イベントの処理
     socket.on("disconnect", () => {
