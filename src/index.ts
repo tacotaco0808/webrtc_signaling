@@ -32,19 +32,22 @@ const roomsMock: { [roomId: string]: any[] } = {
 // Socket.IOの接続イベントの処理
 io.on("connection", (socket) => {
   console.log("socket通信が開始されました。", socket.id);
-  socket.on("join-room", (data: { roomId: string; userId: string }) => {
+  socket.on("join-room", (res_data: { roomId: string; userId: string }) => {
     console.log("join-room", socket.id);
 
     // 既存の部屋メンバーリストを取得（参加前）
-    const existingMembers = rooms[data.roomId] || [];
+    const existingMembers = rooms[res_data.roomId] || [];
 
     // ユーザーを部屋に追加
-    userMap[socket.id] = data.userId;
-    socket.join(data.roomId);
-    if (!rooms[data.roomId]) {
-      rooms[data.roomId] = [];
+    userMap[socket.id] = res_data.userId;
+    socket.join(res_data.roomId);
+    if (!rooms[res_data.roomId]) {
+      rooms[res_data.roomId] = [];
     }
-    rooms[data.roomId]!.push({ socketId: socket.id, userId: data.userId });
+    rooms[res_data.roomId]!.push({
+      socketId: socket.id,
+      userId: res_data.userId,
+    });
 
     // デバッグ:現在のユーザーリストをコンソールに表示
     showUserMap();
@@ -54,7 +57,7 @@ io.on("connection", (socket) => {
     console.log("既存メンバーリストを送信:", existingMembers);
 
     // 部屋にいる他のユーザーに通知
-    socket.to(data.roomId).emit("user-joined", socket.id);
+    socket.to(res_data.roomId).emit("user-joined", socket.id);
 
     // 切断イベントの処理
     socket.on("disconnect", () => {
@@ -62,19 +65,22 @@ io.on("connection", (socket) => {
 
       // ユーザーを部屋から削除
       delete userMap[socket.id];
-      if (rooms[data.roomId]) {
-        const index = rooms[data.roomId]!.findIndex(
-          (user) => user.socketId === socket.id
+      if (rooms[res_data.roomId]) {
+        const index = rooms[res_data.roomId]!.findIndex(
+          (user) => user.socketId === socket.id,
         );
         if (index !== -1) {
-          rooms[data.roomId]!.splice(index, 1);
+          rooms[res_data.roomId]!.splice(index, 1);
         }
         // 空になった部屋を削除
-        if (rooms[data.roomId]!.length === 0) {
-          delete rooms[data.roomId];
+        if (rooms[res_data.roomId]!.length === 0) {
+          delete rooms[res_data.roomId];
         }
       }
-      socket.to(data.roomId).emit("user-disconnected", socket.id);
+      socket.to(res_data.roomId).emit("user-disconnected", {
+        socketId: socket.id,
+        userId: res_data.userId,
+      });
     });
   });
   // Offer送信
@@ -113,7 +119,7 @@ io.on("connection", (socket) => {
       } else {
         console.log("ターゲットのソケットが見つかりません:", targetId);
       }
-    }
+    },
   );
 });
 
