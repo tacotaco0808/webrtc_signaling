@@ -1,14 +1,15 @@
 import io from "socket.io-client";
 
+console.log("Starting test client...");
+
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || "localhost";
-const SERVER_URL =
-  process.env.SERVER_ENV === "dev"
-    ? `https://signal.tacotacokun.com`
-    : `https://production-server:${PORT}`; // サーバーのURLとポートを指定
+const SERVER_URL = `https://signal.tacotacokun.com`;
 
-const socket = io(`${SERVER_URL}`, {
-  secure: true,
+const socket = io(SERVER_URL); // URLをそのまま渡すだけでOK
+
+socket.on("connect_error", (err) => {
+  console.error("接続エラー:", err.message);
 });
 
 socket.on("connect", () => {
@@ -37,18 +38,18 @@ socket.on(
     console.log("シグナルを受信しました:", userId, signal);
   },
 );
-socket.on("offer", ({ userId, sdp }: { userId: string; sdp: any }) => {
-  console.log("offerを受信しました:", userId, sdp);
+socket.on("offer", ({ socketId, sdp }: { socketId: string; sdp: any }) => {
+  console.log("offerを受信しました:", socketId, sdp);
   // モックのAnswerを作成して返信
   const mockAnswerSdp = {
     type: "answer",
     sdp: "v=0\r\no=- 1234567890 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0 1\r\na=msid-semantic: WMS\r\n", // ダミーのSDP文字列
   };
 
-  console.log(`Answerを返信します -> targetId: ${userId}`);
+  console.log(`Answerを返信します -> targetId: ${socketId}`);
 
   socket.emit("answer", {
-    targetId: userId,
+    socketId: socketId,
     sdp: mockAnswerSdp,
   });
 });
