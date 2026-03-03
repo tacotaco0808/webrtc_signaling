@@ -64,7 +64,7 @@ io.on("connection", (socket) => {
       delete userMap[socket.id];
       if (rooms[data.roomId]) {
         const index = rooms[data.roomId]!.findIndex(
-          (user) => user.socketId === socket.id
+          (user) => user.socketId === socket.id,
         );
         if (index !== -1) {
           rooms[data.roomId]!.splice(index, 1);
@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
   socket.on("offer", ({ targetId, sdp }: { targetId: string; sdp: any }) => {
     console.log("offer from", socket.id, "to", targetId);
     if (userMap[targetId]) {
-      io.to(targetId).emit("offer", { userId: socket.id, sdp });
+      io.to(targetId).emit("offer", { socketId: socket.id, sdp });
       console.log("offerを送信しました:", targetId);
     } else {
       console.log("ターゲットのソケットが見つかりません:", targetId);
@@ -92,7 +92,7 @@ io.on("connection", (socket) => {
   socket.on("answer", ({ targetId, sdp }: { targetId: string; sdp: any }) => {
     console.log("answer from", socket.id, "to", targetId);
     if (userMap[targetId]) {
-      io.to(targetId).emit("answer", { userId: socket.id, sdp });
+      io.to(targetId).emit("answer", { socketId: socket.id, sdp });
       console.log("answerを送信しました:", targetId);
     } else {
       console.log("ターゲットのソケットが見つかりません:", targetId);
@@ -106,14 +106,14 @@ io.on("connection", (socket) => {
       console.log("ice-candidate from", socket.id, "to", targetId);
       if (userMap[targetId]) {
         io.to(targetId).emit("ice-candidate", {
-          userId: socket.id,
+          socketId: socket.id,
           candidate,
         });
         console.log("ice-candidateを送信しました:", targetId);
       } else {
         console.log("ターゲットのソケットが見つかりません:", targetId);
       }
-    }
+    },
   );
 });
 
